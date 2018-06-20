@@ -5,6 +5,13 @@ namespace App\Exceptions;
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
+
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
+use Symfony\Component\HttpFoundation\Response;
+
 class Handler extends ExceptionHandler
 {
     /**
@@ -46,6 +53,17 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        if($exception instanceof ModelNotFoundException){
+            return response()->json([
+             "error" => 'ID api was not found',
+            ],Response::HTTP_NOT_FOUND);
+        }
+ 
+        if($exception instanceof NotFoundHttpException){
+         return response()->json([
+          "error" => 'Incorrect Route',
+         ],Response::HTTP_NOT_FOUND);
+     } 
         return parent::render($request, $exception);
     }
 }
