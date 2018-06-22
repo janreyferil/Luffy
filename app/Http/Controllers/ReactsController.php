@@ -20,7 +20,7 @@ class ReactsController extends Controller
     }
 
     public function post_react(Request $request,Post $post){
-        $react = PostReact::where('post_id',$post->id)->first();
+        $react = PostReact::where(['post_id' => $post->id, 'user_id' => auth()->user()->id])->first();
         if($request->react === 'like'){
             if($react === null){
                 $new = new PostReact;
@@ -59,7 +59,12 @@ class ReactsController extends Controller
             }
         }
         $react->save();
-        return response()->json($react,200);
+        return response()->json([
+            "react" => [
+                "like" => $post->post_reacts == null ? 0 : $post->post_reacts->sum('like'),
+                "dislike" =>  $post->post_reacts == null ? 0 : $post->post_reacts->sum('dislike'),
+             ]
+        ],200);
     }
 
     public function comment_react(Request $request,Post $post,PostComment $comment){

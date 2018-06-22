@@ -25,7 +25,7 @@ class PostsController extends Controller
      */
     public function index()
     {
-        $posts = PR::collection(Post::all());
+        $posts = PR::collection(Post::orderBy('created_at','DESC')->paginate(5));
         return response()->json($posts,200);
     }
 
@@ -44,6 +44,7 @@ class PostsController extends Controller
         ]);
         $post->save();
         return response()->json([
+            "post" => new PR($post),
             "success" => true,
             "message" => "Post Added"
         ],200);
@@ -56,10 +57,9 @@ class PostsController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show(Post $post)
-    { 
+    {
         return response()->json(new PR($post),200);
     }
-
     /**
      * Update the specified resource in storage.
      *
@@ -67,11 +67,11 @@ class PostsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Post $post)
+    public function update(PostsRequest $request, Post $post)
     {
         if(auth()->user()->id !== $post->user_id){
             return response()->json([
-                'errors' => true,
+                'restrict' => true,
                 'message' => 'You cannot change this post'
             ],200);
         }
@@ -101,7 +101,7 @@ class PostsController extends Controller
             foreach($comments as $comment){
                 $comment->delete();
             }
-        }  
+        }
         $post->delete();
         return response()->json([
             "success" => true,

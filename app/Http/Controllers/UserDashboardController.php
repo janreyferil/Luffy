@@ -79,7 +79,19 @@ class UserDashboardController extends Controller
         $comments = PostComment::where('user_id',auth()->user()->id)->get();
         return response()->json([
             "post" => PR::collection($posts),
-            "comment" => PCR::collection($comments) 
+            "comment" => PCR::collection($comments)
         ],200);
+    }
+
+    public function accessControl(Post $post){
+          if(auth()->user()->id !== $post->user_id){
+              return response()->json([
+                  'restrict' => true,
+                  'message' => 'You cannot change this post'
+              ],200);
+          }
+          return  response()->json([
+              'restrict' => false,
+          ],200);
     }
 }

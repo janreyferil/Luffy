@@ -20,35 +20,27 @@ class AdminDashboardController extends Controller
         $this->middleware('isadmin');
     }
 
-    public function all_user(){
-        $status = SR::collection(Status::all());
+    public function all_user_pending(){
+       
+        $status = SR::collection(Status::where('permission','pending')->orderBy('created_at','ASC')->get());
+        return response()->json($status,200);
+    }
+
+    public function all_user_success(Status $status){
+        $status = SR::collection(Status::where('permission','stable')->orWhere('permission','success')->orderBy('updated_at','ASC')->get());
         return response()->json($status,200);
     }
     
-    public function single_user(Status $status){
-        if($status->user->role == 'admin') {
-            return response()->json([
-                "redirect" => true 
-            ],200);
-        } 
-        return response()->json(new SR($status),200);
-    }
-
-    public function permissions(){
-        $status = SR::collection(Status::where('permission','pending')->get());
-        if($status->isEmpty()){
-            return response()->json([
-                'value' => 0
-            ],200);
-        }
+    public function all_user_failed(Status $status){
+        $status = SR::collection(Status::where('permission','failed')->orderBy('created_at','ASC')->get());
         return response()->json($status,200);
     }
 
     public function reports(){
-        $status = RR::collection(Report::all());
+        $status = RR::collection(Report::orderBy('created_at','DESC')->get());
         if($status->isEmpty()){
             return response()->json([
-                'value' => 0
+                'empty' => true
             ],200);
         }
         return response()->json($status,200);
@@ -62,8 +54,13 @@ class AdminDashboardController extends Controller
                 } elseif($request->result == 'failed') {
                     $status->permission = 'failed';
                 }
+            } 
+            if($status->permission === 'failed') {
+                if($request->result == 'chance') {
+                    $status->permission = 'success';
+                }
             }
-        } 
+        }
         if($request->option == 'report'){
             if($status->report === 'good') {
                 $status->report = 'bad';

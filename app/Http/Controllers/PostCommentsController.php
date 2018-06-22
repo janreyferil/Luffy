@@ -26,6 +26,11 @@ class PostCommentsController extends Controller
     public function index(Post $post)
     {
         $comments = PCR::collection($post->post_comments);
+        if($comments->isEmpty()){
+            return response()->json([
+              "empty" => true
+            ],200);
+        }
         return response()->json($comments,200);
     }
 

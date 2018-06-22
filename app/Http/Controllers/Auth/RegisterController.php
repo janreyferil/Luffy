@@ -36,7 +36,7 @@ class RegisterController extends Controller
         ]);
         return response()->json([
             'success' => true,
-            'message' => 'Register Success'
+            'message' => 'Your request was successfully sent to admin, wait for your response if you will be join here!!'
         ]);
     }
 
@@ -53,7 +53,7 @@ class RegisterController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Register Success'
+            'message' => 'Your request was successfully sent to admin, wait for your response if you join here!!'
         ]);
     }
 }
