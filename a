@@ -17,7 +17,7 @@
           <router-link class="nav-link" to="/contact"><b><ic icon="phone" size="lg" class="mb-1"></ic> Contact</b></router-link>
         </li>
         <li v-if="isuser" class="nav-item">
-          <router-link class="nav-link" to="/dashboard"><b><ic icon="tachometer-alt" size="lg" class="mb-1"></ic> Dashboard</b> <span class="sr-only">(current)</span></router-link>
+          <router-link class="nav-link" to="/"><b><ic icon="tachometer-alt" size="lg" class="mb-1"></ic> Dashboard</b> <span class="sr-only">(current)</span></router-link>
         </li>
          <li v-if="isuser" class="nav-item">
           <router-link class="nav-link" to="/mypost"><b><ic icon="user" size="lg" class="mb-1"></ic> My Post</b></router-link>
@@ -25,19 +25,10 @@
         <li v-if="isuser" class="nav-item">
           <router-link class="nav-link" to="/posts"><b><ic icon="users" size="lg" class="mb-1"></ic> Posts</b></router-link>
         </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <b><ic icon="tasks" size="lg" class="mb-1"></ic> Admin Action</b>
-          </a>
-          <div class="dropdown-menu bg-light" aria-labelledby="navbarDropdown">
-            <router-link class="dropdown-item" to="/admin/status/pending"><b><ic icon="share-square" size="lg"></ic> Pending</b></router-link>
-            <router-link class="dropdown-item" to="/admin/status/success"><b><ic icon="users" size="lg"></ic> Users</b></router-link>
-            <router-link class="dropdown-item" to="/admin/status/failed"><b><ic icon="times-circle" size="lg"></ic> Failed</b></router-link>
-          </div>
-        </li>
       </ul>
       <form class="form-inline my-2 my-lg-0">
         <ul class="navbar-nav mr-auto">
+      
           <li v-if="!isuser" class="nav-item">
             <router-link class="nav-link" to="/register/user"><b><ic icon="registered" size="lg" class="mb-1"></ic> Register</b> <span class="sr-only">(current)</span></router-link>
           </li>
@@ -89,13 +80,11 @@ import Loading from './Loading.vue'
             icon: "warning",
             buttons: true,
             dangerMode: true,
-            className: "bg-secondary"
         })
         .then((willDelete) => {
           if (willDelete) {
             swal("You are logged out!", {
               icon: "success",
-              className: "bg-secondary"
 
             }).then(()=>{
               vm.isLoading = true
@@ -105,9 +94,7 @@ import Loading from './Loading.vue'
             });
                
           } else {
-            swal("Your decision changed",{
-                className: "bg-secondary"
-            });
+            swal("Your decision changed");
           }
          })
           }

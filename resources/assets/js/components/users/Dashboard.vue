@@ -1,16 +1,17 @@
 <template>
 <div>
-      <my-errors :msg="msg" ></my-errors>
-      <loading  v-if="isloading"></loading>
-      <div class="text-center text-danger">
-          <h1 class="font-text-weight">{{message}}</h1>
-      </div>
+    <div v-if="isloading">
+    <loading :message="message"></loading>    
+    </div>
+    <div v-if="!isloading">
+        <div class="text-center text-danger">
+            <h1 class="font-text-weight">{{message}}</h1>
+        </div>
+    </div>
 </div>
-
 </template>
 
 <script>
-import Handle_Message from '../errors/Handle_Message.vue'
 import Loading from '../inc/Loading.vue'
      export default {
         data() {
@@ -22,18 +23,20 @@ import Loading from '../inc/Loading.vue'
                     issuccess: false,
                     message: null
                 },
-                isloading: false
+                isloading: false,
+                message: {
+                    title: "Dashboard"
+                }
             }
         },
         components: {
-            'my-errors' : Handle_Message,
             'loading': Loading
         },
         created(){
-            this.allUsers()
+            this.Users()
         },
         methods : {
-            allUsers(){
+            Users(){
                 var vm = this
                 this.isloading = true
                 axios.get('api/home',{

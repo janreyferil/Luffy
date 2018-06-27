@@ -1,45 +1,49 @@
 <template>
 <div>
-      <my-errors :msg="msg" ></my-errors>
-      <loading  v-if="isloading"></loading>
-      <div class=" text-success">
-      <h1 class="font-text-weight">Reports Today</h1>
-        <div v-for="status in statuses" v-bind:key="status.id">
-            <div class="alert alert-dismissible alert-success">
-            <h5 class="alert-heading">User who report is {{status.user_report.first}} {{ status.user_report.last}}</h5>
-            <hr>
-            <h5 class="alert-heading">The reported user is {{status.report_user.first}} {{ status.report_user.last}}</h5>
-            <hr>
-            <p><b>Report was submitted on</b> {{status.created_at}}</p>
-             <hr>
-            <p><b>Report statement</b> {{status.report}}</p>
-                   <hr>
-            <p><b>Reason statement</b> {{status.reason}}</p>
-                   <hr>
-            <p><b>Level of being bad</b> {{status.level}}</p>
-            </div>
+    <div v-if="isloading">
+        <loading :message="message"></loading>
+    </div>
+<div v-if="!isloading">
+      <div class=" text-light">
+        <h1 v-if="isEmpty" class="font-text-weight text-info">No Reports</h1>
+        <h1 v-if="!isEmpty" class="font-text-weight text-info">Reports</h1>
+        <div v-if="!isEmpty" v-for="status in statuses" v-bind:key="status.id">
+               <div class="card mb-3 bg-dark">
+                <h3 class="card-header bg-info border-info">Submitted by {{status.user_report.first}} {{ status.user_report.last}}</h3>
+                <div class="card-body">
+                    <h5 class="card-title"><b>Report User</b></h5>
+                    <h5 class="card-subtitle text-muted">{{status.report_user.first}} {{ status.report_user.last}}</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-dark"><b>Report statement:</b> {{status.report}}</li>
+                    <li class="list-group-item bg-dark"><b>Reason statement:</b> {{status.reason}}</li>
+                    <li class="list-group-item bg-dark"><b>Level of being bad:</b> {{status.level}}</li>
+                </ul>
+                <div class="card-footer text-muted bg-primary">
+                    <b>Report was submitted on</b> {{status.created_at}}
+                </div>
+                </div>
         </div>
       </div>
+</div>
 </div>
 </template>
 
 <script>
-import Handle_Message from '../errors/Handle_Message.vue'
 import Loading from '../inc/Loading.vue'
- export default {
+import swal from 'sweetalert' 
+export default {
         data() {
             return {
                 statuses: [],
-                msg :{
-                    iserror: false,
-                    issuccess: false,
-                    message: null
+                isEmpty:null,
+                isloading: false,
+                message: {
+                    title: 'Report'
                 },
-                isloading: false
             }
         },
         components: {
-            'my-errors' : Handle_Message,
             'loading': Loading
         },
         created(){
@@ -55,13 +59,21 @@ import Loading from '../inc/Loading.vue'
                 }
                 })
                 .then(function(response) {
-                  //  console.log(response.data)
                     if(response.data.redirect){
-                      this.$router.push('/dashboard')
+                        swal("Unauthorized","We sended a report to admin because you trying to access the admin page!",{
+                        icon: "error"
+                        })  
+                        this.$router.push('/dashboard')
                     }
-                    vm.statuses = response.data
+                     if(response.data.empty){
+                        vm.isEmpty = true
+                    } else {
+                        vm.isEmpty = false
+                        vm.statuses = response.data.data
+                    }
                     vm.isloading = false
                 }).catch(function(error){
+                    console.log(error)
                     vm.isloading = false
                 })
             }

@@ -6,10 +6,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 use App\Http\Resources\Foreign\UsersResource as FUR;
 use App\Http\Resources\Foreign\PostsResource as FPR;
-use App\Http\Resources\Foreign\CommentReactsResource as FCRR;
-class PostCommentsResource extends JsonResource
+
+class PostComment extends JsonResource
 {
-    /**
+     /**
      * Transform the resource into an array.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -29,6 +29,6 @@ class PostCommentsResource extends JsonResource
          ],
         "created_at" => $this->created_at->diffForHumans(),
         "updated_at" => $this->updated_at->diffForHumans()
-    ];
+     ];
     }
 }

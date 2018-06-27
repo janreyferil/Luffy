@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Status;
 use App\Report;
-use App\Http\Resources\Primary\StatusesResource as SR;
-use App\Http\Resources\Primary\ReportsResource as RR;
+use App\Http\Resources\Primary\StatusCollection as SC;
+use App\Http\Resources\Primary\Status as S;
+use App\Http\Resources\Primary\ReportCollection as RC;
 
 class AdminDashboardController extends Controller
 {
@@ -21,29 +22,43 @@ class AdminDashboardController extends Controller
     }
 
     public function all_user_pending(){
-       
-        $status = SR::collection(Status::where('permission','pending')->orderBy('created_at','ASC')->get());
-        return response()->json($status,200);
+        $status = new SC(Status::where('permission','pending')->orderBy('created_at','ASC')->paginate(5));
+        if($status->isEmpty()){
+            return response()->json([
+                "empty" => true
+            ],200);  
+        }
+        return $status;
     }
 
     public function all_user_success(Status $status){
-        $status = SR::collection(Status::where('permission','stable')->orWhere('permission','success')->orderBy('updated_at','ASC')->get());
-        return response()->json($status,200);
+        $status = new SC(Status::where('permission','stable')->orWhere('permission','success')->orderBy('updated_at','ASC')->paginate(5));
+        if($status->isEmpty()){
+            return response()->json([
+                "empty" => true
+            ],200);  
+        }
+        return $status;
     }
     
     public function all_user_failed(Status $status){
-        $status = SR::collection(Status::where('permission','failed')->orderBy('created_at','ASC')->get());
-        return response()->json($status,200);
+        $status = new SC(Status::where('permission','failed')->orderBy('created_at','ASC')->paginate(5));
+        if($status->isEmpty()){
+            return response()->json([
+                "empty" => true
+            ],200);  
+        }
+        return $status;
     }
 
     public function reports(){
-        $status = RR::collection(Report::orderBy('created_at','DESC')->get());
+        $status = new RC(Report::orderBy('created_at','DESC')->paginate(5));
         if($status->isEmpty()){
             return response()->json([
                 'empty' => true
             ],200);
         }
-        return response()->json($status,200);
+        return $status;
     }
 
     public function update(Request $request,Status $status) {
@@ -73,7 +88,7 @@ class AdminDashboardController extends Controller
         $status->save();
         return response()->json([
             'success' => true,
-            'status' => new SR($status)
+            'status' => new S($status)
         ]);
     }
 }

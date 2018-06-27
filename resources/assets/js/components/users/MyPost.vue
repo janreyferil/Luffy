@@ -1,21 +1,23 @@
 <template>
 <div>
-      <my-errors :msg="msg" ></my-errors>
-      <loading  v-if="isloading"></loading>
+    <div v-if="isloading">
+    <loading :message="message"></loading>    
+    </div>
+    <div v-if="!isloading">
       <div class="text-danger">
-      <h1 class="text-center font-text-weight">My Posts</h1>
+      <h1 class="font-text-weight">My Posts</h1>
         <div v-for="post in posts" v-bind:key="post.id">
-            <div class="jumbotron">
-                <h3>{{post.title}}</h3>
-                <button class="btn btn-danger">View</button>
+            <div class="jumbotron p-2">
+                <button class="btn btn-primary col-12 mb-2"><ic icon="eye" size="lg" class="text-light animated infinite bounceIn"></ic> <ic icon="eye" size="lg" class="text-light ml-2 animated infinite bounceIn"></ic></button>
+                <h3 class="text-center">{{post.title}}</h3>
             </div>
         </div>
       </div>
 </div>
+</div>
 </template>
 
 <script>
-import Handle_Message from '../errors/Handle_Message.vue'
 import Loading from '../inc/Loading.vue'
  export default {
         data() {
@@ -25,16 +27,13 @@ import Loading from '../inc/Loading.vue'
                 post: [
 
                 ],
-                msg :{
-                    iserror: false,
-                    issuccess: false,
-                    message: null
-                },
-                isloading: false
+                isloading: false,
+                message: {
+                    title: "My Post"
+                }
             }
         },
         components: {
-            'my-errors' : Handle_Message,
             'loading': Loading
         },
         created(){

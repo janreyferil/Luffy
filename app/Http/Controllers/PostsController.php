@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Post;
 use App\PostComment;
-use App\Http\Resources\Primary\PostsResource as PR;
+use App\Http\Resources\Primary\Post as P;
+use App\Http\Resources\Primary\PostCollection as PC;
 use App\Http\Requests\PostsRequest;
+
 class PostsController extends Controller
 {
     /**
@@ -24,11 +26,11 @@ class PostsController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        $posts = PR::collection(Post::orderBy('created_at','DESC')->paginate(5));
-        return response()->json($posts,200);
+    {   
+        $posts = Post::orderBy('created_at','DESC')->paginate(5);
+        $collection = new PC($posts);
+        return $collection;
     }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -44,7 +46,7 @@ class PostsController extends Controller
         ]);
         $post->save();
         return response()->json([
-            "post" => new PR($post),
+            "post" => new P($post),
             "success" => true,
             "message" => "Post Added"
         ],200);
@@ -58,7 +60,7 @@ class PostsController extends Controller
      */
     public function show(Post $post)
     {
-        return response()->json(new PR($post),200);
+        return response()->json(new P($post),200);
     }
     /**
      * Update the specified resource in storage.
@@ -81,7 +83,6 @@ class PostsController extends Controller
             "message" => "Post Updated"
         ],200);
     }
-
     /**
      * Remove the specified resource from storage.
      *

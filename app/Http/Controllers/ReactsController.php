@@ -21,15 +21,17 @@ class ReactsController extends Controller
 
     public function post_react(Request $request,Post $post){
         $react = PostReact::where(['post_id' => $post->id, 'user_id' => auth()->user()->id])->first();
+        $isnew = false;
         if($request->react === 'like'){
             if($react === null){
-                $new = new PostReact;
-                $new->user_id = auth()->user()->id;
-                $new->post_id = $post->id;
-                $new->like = 1;
-                $new->dislike = 0;
+                $new = PostReact::create([
+                    "user_id" => auth()->user()->id,
+                    "post_id" => $post->id,
+                    "like" => 1,
+                    "dislike" => 0
+                ]);
                 $new->save();
-                return response()->json($new,200);
+                $isnew = true;
             } elseif($react->like == 0 && $react->dislike == 0){
                 $react->like = 1;
             }
@@ -47,7 +49,7 @@ class ReactsController extends Controller
                 $new->like = 0;
                 $new->dislike = 1;
                 $new->save();
-                return response()->json($new,200);
+                $isnew = true;
             } elseif($react->dislike == 0 && $react->like == 0){
                 $react->dislike = 1;
             }
@@ -58,7 +60,9 @@ class ReactsController extends Controller
                 $react->like = 0;
             }
         }
-        $react->save();
+        if(!$isnew){
+         $react->save();   
+        }
         return response()->json([
             "react" => [
                 "like" => $post->post_reacts == null ? 0 : $post->post_reacts->sum('like'),
@@ -68,7 +72,8 @@ class ReactsController extends Controller
     }
 
     public function comment_react(Request $request,Post $post,PostComment $comment){
-        $react = CommentReact::where('comment_id',$comment->id)->first();
+        $react = CommentReact::where(['comment_id' => $comment->id, 'user_id' => auth()->user()->id])->first();
+        $isnew = false;
         if($request->react === 'like'){
             if($react === null){
                 $new = new CommentReact;
@@ -77,7 +82,7 @@ class ReactsController extends Controller
                 $new->like = 1;
                 $new->dislike = 0;
                 $new->save();
-                return response()->json($new,200);
+                $isnew = true;
             } elseif($react->like == 0 && $react->dislike == 0){
                 $react->like = 1;
             }
@@ -95,7 +100,7 @@ class ReactsController extends Controller
                 $new->like = 0;
                 $new->dislike = 1;
                 $new->save();
-                return response()->json($new,200);
+                $isnew = true;
             } elseif($react->dislike == 0 && $react->like == 0){
                 $react->dislike = 1;
             }
@@ -106,7 +111,9 @@ class ReactsController extends Controller
                 $react->like = 0;
             }
         }
-        $react->save();
+        if(!$isnew){
+            $react->save();
+        }
         return response()->json($react,200);
     }
 }

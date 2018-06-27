@@ -8,19 +8,15 @@
         <script>window.Laravel = { csrfToken: '{{ csrf_token() }}' }</script>
     
         <title>Laravel</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css">  
+        <link rel="stylesheet" href="{{asset('css/animate.css')}}">
         <link rel="stylesheet" href="{{asset('css/app.css')}}">
-    
-        <style>
-            html,body{
-                background-color: rgb(248,249,250);
-            }
-        </style>
+
     </head>
     <body>
         <div id="app">
            <example-component></example-component>
         </div>
     <script src="{{asset('js/app.js')}}"></script>
+    
     </body>
 </html>

@@ -20,7 +20,7 @@ class Post extends Model
     }
     
     public function post_comments(){
-        return $this->hasMany(PostComment::class);
+        return $this->hasMany(PostComment::class)->orderBy('created_at','DESC');
     }
 
     public function post_reacts(){

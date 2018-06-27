@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Post;
 use App\PostComment;
-use App\Http\Resources\Primary\PostCommentsResource as PCR;
+use App\Http\Resources\Primary\PostCommentCollection as PCC;
+use App\Http\Resources\Primary\PostComment as PCR;
 use App\Http\Requests\PostCommentsRequest;
 class PostCommentsController extends Controller
 {
@@ -25,13 +26,9 @@ class PostCommentsController extends Controller
      */
     public function index(Post $post)
     {
-        $comments = PCR::collection($post->post_comments);
-        if($comments->isEmpty()){
-            return response()->json([
-              "empty" => true
-            ],200);
-        }
-        return response()->json($comments,200);
+        $comments = $post->post_comments()->orderBy('created_at','DESC')->paginate(5);
+        $collection = new PCC($comments);
+        return $collection;
     }
 
     /**
@@ -50,7 +47,8 @@ class PostCommentsController extends Controller
         $post->post_comments()->save($comment);
         return response()->json([
             "success" => true,
-            "message" => "Comment Added"
+            "message" => "Comment Added",
+            "comment" => new PCR($comment)
         ],200);
     }
 
@@ -84,7 +82,8 @@ class PostCommentsController extends Controller
         $comment->update($request->all());
         return response()->json([
             "success" => true,
-            "message" => "Comment Added"
+            "message" => "Comment Added",
+            "comment" => new PCR($comment)
         ],200);
     }
 

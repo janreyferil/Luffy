@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Foreign;
+namespace App\Http\Resources\Primary;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UsersResource extends JsonResource
+class User extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -20,7 +20,7 @@ class UsersResource extends JsonResource
         "first" => $this->first,
         "last" => $this->last,
         "email" => $this->email,
-        "created_at" => $this->created_at->diffForHumans(),
+        "created_at" => $this->created_at->diffForHumans()
      ];
     }
 }

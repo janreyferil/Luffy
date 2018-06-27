@@ -22,4 +22,8 @@ class PostComment extends Model
     public function post_comments(){
         return $this->belongsTo(Post::class,'post_id');
     }
+
+    public function postcomment_reacts(){
+        return $this->hasMany(CommentReact::class,'comment_id');
+    }
 }

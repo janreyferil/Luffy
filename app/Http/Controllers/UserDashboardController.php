@@ -10,17 +10,17 @@ use App\PostReact;
 use App\Post;
 use App\PostComment;
 use App\Http\Requests\ReportsRequest;
-use App\Http\Resources\Primary\UsersResource as UR;
-use App\Http\Resources\Primary\ReportsResource as RR;
-use App\Http\Resources\Primary\PostsResource as PR;
-use App\Http\Resources\Primary\PostCommentsResource as PCR;
-use App\Http\Resources\Primary\PostReactsResource as PRR;
-use App\Http\Resources\Primary\CommentReactsResource as CRR;
+use App\Http\Resources\Primary\User as U;
+use App\Http\Resources\Primary\Report as R;
+use App\Http\Resources\Primary\PostCollection as PC;
+use App\Http\Resources\Primary\PostCommentCollection as PCC;
+use App\Http\Resources\Primary\PostReactCollection as PRC;
+use App\Http\Resources\Primary\CommentReactCollection as CRC;
 class UserDashboardController extends Controller
 {
     public function __construct(){
-        $this->middleware('auth:api');
-        $this->middleware('isuser');
+       $this->middleware('auth:api');
+       $this->middleware('isuser');
     }
 
     public function home(){
@@ -30,7 +30,7 @@ class UserDashboardController extends Controller
             return response()->json([
                 "success" => true,
                 "message" => $message,
-                "user" => new UR($user)
+                "user" => new U($user)
             ],200);
         }
         $status = Status::where(['user_id' => auth()->user()->id,
@@ -47,11 +47,13 @@ class UserDashboardController extends Controller
         return response()->json([
             "success" => true,
             "message" => $message,
-            "user" => new UR($user)
+            "user" => new U($user)
         ],200);
     }
 
     public function report(ReportsRequest $request){
+      $user = User::where('id',$request->user_to_id)->first();
+      $message = "You successfuly reported " . $user->first . ' ' . $user->last; 
       $report =  Report::create([
             "user_id" => auth()->user()->id,
             "user_to_id" => $request->user_to_id,
@@ -62,15 +64,16 @@ class UserDashboardController extends Controller
         $report->save();
         return response()->json([
             "success" => true,
-            "report" => new RR($report)
+            "report" => new R($report),
+            "message" => $message
         ],200);
     }
 
     public function react_history(){
         $user = User::find(auth()->user()->id)->first();
         return response()->json([
-            "post_reacts" => PRR::collection($user->user_post_reacts),
-            "comment_reacts" => CRR::collection($user->user_comment_reacts),
+            "post_reacts" => new PRC($user->user_post_reacts),
+            "comment_reacts" => new CRC($user->user_comment_reacts),
         ],200);
     }
 
@@ -78,8 +81,8 @@ class UserDashboardController extends Controller
         $posts = Post::where('user_id',auth()->user()->id)->get();
         $comments = PostComment::where('user_id',auth()->user()->id)->get();
         return response()->json([
-            "post" => PR::collection($posts),
-            "comment" => PCR::collection($comments)
+            "post" => new PC($posts),
+            "comment" => new PCC($comments)
         ],200);
     }
 

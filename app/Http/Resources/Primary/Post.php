@@ -3,13 +3,10 @@
 namespace App\Http\Resources\Primary;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-
 use App\Http\Resources\Foreign\UsersResource as FUR;
-use App\Http\Resources\Foreign\PostsResource as FPR;
-use App\Http\Resources\Foreign\CommentReactsResource as FCRR;
-class PostCommentsResource extends JsonResource
-{
-    /**
+
+class Post extends JsonResource
+{  /**
      * Transform the resource into an array.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -20,15 +17,15 @@ class PostCommentsResource extends JsonResource
       //  return parent::toArray($request);
       return [
         "id" => $this->id,
-        "user_id" => new FUR($this->user_post_comments),
-        "post_id" => new FPR($this->post_comments),
+        "user" => new FUR($this->user),
+        "title" => $this->title,
         "body" => $this->body,
         "react" => [
-            "like" => $this->postcomment_reacts == null ? 0 : $this->postcomment_reacts->sum('like'),
-            "dislike" =>  $this->postcomment_reacts == null ? 0 : $this->postcomment_reacts->sum('dislike'),
+            "like" => $this->post_reacts == null ? 0 : $this->post_reacts->sum('like'),
+            "dislike" =>  $this->post_reacts == null ? 0 : $this->post_reacts->sum('dislike'),
          ],
         "created_at" => $this->created_at->diffForHumans(),
         "updated_at" => $this->updated_at->diffForHumans()
-    ];
+        ];
     }
 }
