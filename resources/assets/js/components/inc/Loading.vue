@@ -3,8 +3,8 @@
         <div class="progress">
         <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" v-bind:style="{ width: currWid + '%'}"></div>
         </div>
-        <div class="text-center">
-          <label class="h3 text-font-weight text-danger animated infinite bounce mt-4">{{message.title}} Loading....</label>
+        <div class="text-center mt-5">
+            <h1 class="animated infinite text-danger bounce">Loading</h1>
         </div>
     </div>
 </template>
@@ -27,3 +27,7 @@
              }
         }
 </script>
+
+<style>
+
+</style>

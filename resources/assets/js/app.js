@@ -49,26 +49,22 @@ Vue.http.interceptors.push(function (request, next) {
     next(function (response) {
         if (response.status === 401 || response.status === 403) {
            swal("Unauthorized","You are not logged in or do not have the rights to access this site.",{
-               icon: "error",
-               className: "bg-secondary"
+               icon: "error"
            }).then(function(){
                Router.push('/login')
            })
         } else if(response.status === 422){
             swal("Oppss","Something wrong with your registration!",{
-                icon: "info",
-                className: "bg-secondary"
+                icon: "info"
             })
         } 
         else if(response.status === 404){
             swal("Page is not found","Incorrect route path.",{
-                icon: "error",
-                className: "bg-secondary"
+                icon: "error"
             })
         } else if(response.status === 500){
             swal("Internal Error","Contact the admin immediately for this error",{
-                icon: "error",
-                className: "bg-secondary"
+                icon: "error"
             })
         }
     });

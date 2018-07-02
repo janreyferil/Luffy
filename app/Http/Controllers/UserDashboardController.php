@@ -16,6 +16,9 @@ use App\Http\Resources\Primary\PostCollection as PC;
 use App\Http\Resources\Primary\PostCommentCollection as PCC;
 use App\Http\Resources\Primary\PostReactCollection as PRC;
 use App\Http\Resources\Primary\CommentReactCollection as CRC;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+
 class UserDashboardController extends Controller
 {
     public function __construct(){
@@ -96,5 +99,64 @@ class UserDashboardController extends Controller
           return  response()->json([
               'restrict' => false,
           ],200);
+    }
+
+    public function changeAccount(Request $request){
+        $user = User::find(auth()->user()->id);
+
+        if (Hash::check($request->password_confirmation, $user->password)) {    
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password);
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Successfully change your account'
+            ],200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect Conformation Password'
+            ],200);
+        }
+    }
+
+    public function changeInfo(Request $request){
+        $user = User::find(auth()->user()->id);
+
+        if($request->profile != '') {
+
+         if(auth()->user()->profile != 'noimage.jpg')
+         {
+             Storage::delete('public/profile/'.auth()->user()->profile );
+         } 
+   
+         $exploded = explode(',',$request->profile);
+     
+         $decoded = base64_decode($exploded[1]);
+
+         if(str_contains($exploded[0],'jpeg'))
+          $extension = 'jpg';
+         else 
+          $extension = 'png';
+
+         $fileName = str_random().'.'.$extension;
+
+         $path = public_path().'/storage/profile/'.$fileName;
+         
+         file_put_contents($path,$decoded);
+         } else {
+             $fileName = auth()->user()->profile;
+         }
+
+        $user->first = $request->first;
+        $user->last = $request->last;
+        $user->profile = $fileName;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Successfully change your information'
+        ],200);
     }
 }

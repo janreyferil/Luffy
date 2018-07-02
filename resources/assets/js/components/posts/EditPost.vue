@@ -1,6 +1,10 @@
 <template>
       <div>
-        <form @submit.prevent="editPost(post.id,edit_post)">
+        <form @submit.prevent="editPost(edit_post)">
+          <div class="form-group">
+            <label class="text-success font-weight-bold">Title</label>
+            <input type="file" class="form-control bg-primary border-primary text-success" @change="imageChanged">
+          </div>
             <div class="form-group" :class="{'has-error' : errors.title.length}">
             <label class="text-success font-weight-bold">Title</label>
             <input type="text" class="form-control bg-primary border-primary text-success" v-model="edit_post.title">
@@ -24,8 +28,9 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
     data(){
       return {
         edit_post:{
-          title: null,
-          body: null
+          title: '',
+          body: '',
+          image: ''
         },
         errors:{
           title: [],
@@ -43,23 +48,31 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
         this.edit_post.body = this.post.body
     },
     methods: {
-      editPost(id,post){
+      imageChanged(e){
+          var vm = this
+          var fileReader = new FileReader()
+
+          fileReader.readAsDataURL(e.target.files[0])
+
+          fileReader.onload = function(e){
+          vm.edit_post.image = e.target.result
+          }
+      },
+      editPost(post){
         var vm = this
+       // console.log(vm.edit_post.image)
         this.wait = true
-        this.$http.put('api/posts/'+id,post,{
+        this.$http.put('api/posts/'+this.post.id,post,{
           headers: {
             Authorization: 'Bearer ' + this.$auth.getToken()
           }
         })
         .then(function(response) {
+          console.log(response.data)
             if(response.data.success){
-              swal("Update Post",response.data.message,{
-              icon:"success"
-              })
-              vm.post.title = vm.edit_post.title
-              vm.post.body = vm.edit_post.body
+              //console.log(response.data)
+              vm.singlePost()
             }
-             vm.wait = false
         })
         .catch(function(error) {
           var data = error.body.errors
@@ -71,6 +84,24 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
                     vm.errors[key] = errorMessage
             }
                vm.wait = false 
+        })
+      },
+        singlePost(){
+        var vm = this
+        this.$http.get('api/posts/'+this.post.id,{
+          headers: {
+                 Authorization: 'Bearer ' + this.$auth.getToken()
+          }
+        })
+        .then(function(response){
+         vm.$emit('eventnamesingle', response.data)
+            swal("Update Post","Update successfully",{
+            icon:"success"
+            })
+         vm.wait = false
+        })
+        .catch(function(error){
+          console.log(error)
         })
       }
   }

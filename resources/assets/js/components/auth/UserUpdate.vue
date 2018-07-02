@@ -1,19 +1,19 @@
 <template>
 <div>
-<div v-if="isloading">
-<loading :message="message"></loading>    
-</div>
-<div v-if="!isloading">
-    <form @submit.prevent="login">
+    <form @submit.prevent="updateSetting(user)">
         <div class="card border-info border-danger text-danger mx-auto mt-4 mb-4" style="max-width:24rem;">
                 <div class="card-header bg-danger text-light">
-                    <h2 class="font-weight-bold mt-1"><ic icon="user-lock" size="lg"></ic> Login</h2>
+                    <h2 class="font-weight-bold mt-1"><ic icon="cogs" size="lg"></ic> Account Setting</h2>
                 </div>
                 <div class="card-body font-weight-bold">
                 <div class="form-group" :class="{'has-error' : error.email}">
                     <label for="exampleInputEmail1">Username</label>
                     <input type="email" v-model="user.email" class="border-dark bg-dark text-danger form-control">
                     <p v-if="error.eerror" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{error.email}}</p>
+                </div>
+                <div class="form-group">
+                    <label or="exampleInputPassword1">Confirm Password</label>
+                    <input type="password" v-model="user.password_confirmation" class="border-dark bg-dark text-danger form-control">
                 </div>
                 <div class="form-group" :class="{'has-error' : error.password}">
                     <label or="exampleInputPassword1">Password</label>
@@ -24,17 +24,19 @@
             </div>     
         </div>
     </form>
+    <loading :active.sync="wait" :can-cancel="true"></loading>
     </div>
-</div>
 </template>
 <script>
-import Loading from '../inc/Loading.vue'
+import Loading from 'vue-loading-overlay';
+import swal from 'sweetalert'
     export default {
         data() {
             return {
                 user:{
                     email : '',
                     password: '',
+                    password_confirmation: '',
                 },
                 error: {
                     email : '',
@@ -44,53 +46,49 @@ import Loading from '../inc/Loading.vue'
                 },
                 isloading: false,
                 message: {
-                    title: "Login"
-                }
+                    title: "Update Setting"
+                },
+                wait : false
             }
         },
         components: {
-            'loading': Loading
+            Loading
         },
         created(){
-            if(sessionStorage.getItem("login"))
-            this.$router.push('/dashboard')
-            sessionStorage.removeItem("login")
+            this.Users();
         },
         methods: {
-            login(){
-                this.error.email = ''
-                this.error.password = ''
-                var vm = this
+            clean(){
+                this.user.password_confirmation = ''
+                this.user.password = ''
+            },
+            updateSetting(account){
+              var vm = this
                 if(!vm.validate()) {
                     return false;
                  }
-                vm.isloading = true  
-                var data = {
-                    client_id: 2,
-                    client_secret: 'DJxiGkQ9F0vp1XeaUOZrCYbf2dIgJf41lg1DJorK',
-                    grant_type: 'password',
-                    username: this.user.email,
-                    password: this.user.password
-                }
-                this.$http.post("oauth/token",data)
-                .then(function(response) {
-                      vm.error.eemail = true  
-                      vm.error.perror = true
-                      vm.$auth.setToken(response.data.access_token,response.data.expires_in + Date.now())
-                      sessionStorage.setItem("login",true)
-                      window.location.reload()
-                })  
-                .catch(function(error) {
-                    if(error.status == 401){
-                        vm.isloading = false  
-                        vm.error.eemail = true  
-                        vm.error.perror = false
-                        var data = error.body.message
-                        vm.error.email = data   
-                    }
-                })
+              this.wait = true
+              this.$http.put('api/setting/account',account,{
+                  headers: {
+                      Authorization: 'Bearer ' + this.$auth.getToken()
+                  }
+              })
+              .then((response)=>{
+                  if(response.data.success){
+                    this.wait = false
+                    swal("Success",response.data.message,{
+                        icon: "success"
+                    })
+                  } else {
+                    this.wait = false
+                    swal("Warning",response.data.message,{
+                        icon: "warning"
+                    })
+                    this.clean()
+                  }
+              })
             },
-             validate(){
+            validate(){
                  var vm = this
                 if(vm.user.email == '' && vm.user.password == ''){
                     vm.error.email = 'The email field is required'
@@ -110,6 +108,22 @@ import Loading from '../inc/Loading.vue'
                     return false;
                 }
                   return true;
+            },
+            Users(){
+                var vm = this
+                this.wait = true
+                axios.get('api/home',{
+                headers: {
+                     Authorization: 'Bearer ' + this.$auth.getToken()
+                }
+                })
+                .then(function(response) {
+                    vm.user.email = response.data.user.email
+                    vm.wait = false
+                    
+                }).catch(function(error){
+                     vm.wait = false
+                })
             }
         }
     }

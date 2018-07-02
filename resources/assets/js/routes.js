@@ -7,6 +7,8 @@ import Contact from './components/pages/Contact.vue'
 import AdminRegister from './components/auth/AdminRegister.vue'
 import UserRegister from './components/auth/UserRegister.vue'
 import Login from './components/auth/Login.vue'
+import UserUpdate from './components/auth/UserUpdate.vue'
+import UserUpdateInfo from './components/auth/UserUpdateInfo.vue'
 import Dashboard from './components/users/Dashboard.vue'
 import MyPost from './components/users/MyPost.vue'
 import StatusPending from './components/admin/StatusPending.vue'
@@ -101,6 +103,20 @@ const router = new VueRouter({
         {
             path:"/posts",
             component: Posts,
+            meta: {
+                forAuth: true
+            }
+        },
+        {
+            path:"/setting/account",
+            component: UserUpdate,
+            meta: {
+                forAuth: true
+            }
+        },
+        {
+            path:"/setting/info",
+            component: UserUpdateInfo,
             meta: {
                 forAuth: true
             }

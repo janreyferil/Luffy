@@ -90,5 +90,17 @@ class AdminDashboardController extends Controller
             'success' => true,
             'status' => new S($status)
         ]);
+        
+    }
+  
+    public function adminControl(){
+        if(auth()->user()->role !== 'admin'){
+            return response()->json([
+                'restrict' => true,
+            ],200);
+        }
+        return  response()->json([
+            'restrict' => false,
+        ],200);
     }
 }

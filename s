@@ -78,7 +78,7 @@ import Loading from '../inc/Loading.vue'
                       vm.error.perror = true
                       vm.$auth.setToken(response.data.access_token,response.data.expires_in + Date.now())
                       sessionStorage.setItem("login",true)
-                      window.location.reload()
+                      vm.getUser()
                 })  
                 .catch(function(error) {
                     if(error.status == 401){
@@ -90,6 +90,34 @@ import Loading from '../inc/Loading.vue'
                     }
                 })
             },
+            getUser(){
+                var vm = this
+                axios.get('api/home',{
+                headers: {
+                        Authorization: 'Bearer ' + this.$auth.getToken()
+                }
+                })
+                .then(function(response) {
+                    if(response.data.redirect){
+                        vm.isloading = false
+                        swal('Opsss',response.data.message,{
+                            icon: "error"
+                        }).then(()=>{
+                            location.reload()
+                        })
+                        vm.$auth.destroyToken()
+                        vm.$router.push('/')
+                    } else {
+                        console.log(response.data.user)
+                        
+                        vm.$auth.setAuthenticatedUser(response.data.user)
+                        vm.message = response.data.message
+                        vm.isloading = false
+                            }
+                        }).catch(function(error){
+                            vm.isloading = false
+                        })
+                    },
              validate(){
                  var vm = this
                 if(vm.user.email == '' && vm.user.password == ''){

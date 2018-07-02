@@ -1,7 +1,11 @@
 <template>
 <div>
   <nav class="navbar navbar-expand-lg navbar-dark bg-danger mb-4 p-2">
-    <div class="navbar-brand text-success animated infinite fadeOut"><ic icon="gem" size="2x"></ic><b>Emerald</b></div>
+    <div v-if="user.profile" class="form-inline">
+     <img :src="'storage/profile/'+user.profile" class="avatar float-left">
+     <div class="navbar-brand ml-2"> <b>{{user.first}} {{user.last}}</b></div>
+    </div>
+    <div v-if="!isuser" class="navbar-brand text-success animated infinite fadeOut"><ic icon="gem" size="2x"></ic><b>Emerald</b></div>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -25,7 +29,7 @@
         <li v-if="isuser" class="nav-item">
           <router-link class="nav-link" to="/posts"><b><ic icon="users" size="lg" class="mb-1"></ic> Posts</b></router-link>
         </li>
-        <li class="nav-item dropdown">
+        <li v-if="isadmin" class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <b><ic icon="tasks" size="lg" class="mb-1"></ic> Admin Action</b>
           </a>
@@ -39,15 +43,21 @@
       <form class="form-inline my-2 my-lg-0">
         <ul class="navbar-nav mr-auto">
           <li v-if="!isuser" class="nav-item">
-            <router-link class="nav-link" to="/register/user"><b><ic icon="registered" size="lg" class="mb-1"></ic> Register</b> <span class="sr-only">(current)</span></router-link>
+            <router-link class="nav-link" to="/register/user"><b><ic icon="registered" size="lg" class="mt-1"></ic> Register</b> <span class="sr-only">(current)</span></router-link>
           </li>
           <li v-if="!isuser" class="nav-item">
             <router-link class="nav-link" to="/login"><b><ic icon="sign-in-alt" size="lg" class="mt-1"></ic> Login</b> </router-link>
           </li>
-  
-          <li v-if="isuser" class="nav-item">
-            <router-link class="nav-link" to="/login"><b><ic icon="user-cog" size="lg" class="mb-1"></ic> User Setting</b> </router-link>
-          </li>
+
+        <li v-if="isuser" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <b><ic icon="user-cog" size="lg" class="mb-1"></ic> User Settings</b>
+          </a>
+          <div class="dropdown-menu bg-light" aria-labelledby="navbarDropdown">
+            <router-link class="dropdown-item" to="/setting/account"><b><ic icon="cog" size="lg" class="mb-1"></ic> Account Setting</b> </router-link>
+            <router-link class="dropdown-item" to="/setting/info"><b><ic icon="cog" size="lg" class="mb-1"></ic> Information Setting</b> </router-link>
+          </div>
+        </li>
           <li v-if="isuser" class="nav-item">
             <a class="nav-link" @click="logout"><b><ic icon="sign-out-alt" size="lg" class="mb-1"></ic> Logout</b></a>
           </li>
@@ -55,28 +65,32 @@
       </form>
     </div>
   </nav>
-    <loading v-if="isLoading" :message="message"></loading>    
+      <loading :active.sync="isLoading" :can-cancel="true"></loading>  
 </div>
 </template>
 
 <script>
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.min.css';
 import swal from 'sweetalert'
-import Loading from './Loading.vue'
     export default {
         data(){
           return {
             isuser: null,
             isLoading : false,
-            message: {
-              title: "Dashboard"
-            }
+            isadmin: null,
+            user : [],
           }
         },
         components:{
-          'loading': Loading
+            Loading
         },
         created(){
          this.isuser = this.$auth.isAuthenticated()
+         if(this.isuser){
+            this.Users()
+         }
+         this.adminControl()
          if(sessionStorage.getItem("logout"))
             sessionStorage.removeItem("logout")
         },
@@ -89,28 +103,67 @@ import Loading from './Loading.vue'
             icon: "warning",
             buttons: true,
             dangerMode: true,
-            className: "bg-secondary"
-        })
-        .then((willDelete) => {
-          if (willDelete) {
-            swal("You are logged out!", {
-              icon: "success",
-              className: "bg-secondary"
-
-            }).then(()=>{
-              vm.isLoading = true
-              this.$auth.destroyToken()
-               sessionStorage.setItem("logout",true)
-               window.location.reload() 
-            });
-               
-          } else {
-            swal("Your decision changed",{
-                className: "bg-secondary"
-            });
-          }
-         })
-          }
+            })
+            .then((willDelete) => {
+              if (willDelete) {
+                swal("You are logged out!", {
+                  icon: "success"
+                }).then(()=>{
+                  vm.isLoading = true
+                  this.$auth.destroyToken()
+                  sessionStorage.setItem("logout",true)
+                  window.location.reload() 
+                });
+                  
+              } else {
+                swal("Your decision changed",{
+                  icon: "info"
+                });
+              }
+            })
+              },
+               adminControl(){
+              var vm = this
+                if(!this.isuser) {
+                  this.isadmin = false
+                } else {
+                  this.$http.get('api/check',{
+                    headers: {
+                      Authorization: 'Bearer ' + this.$auth.getToken()
+                    }
+                  })
+                  .then(function(response){
+                      if(response.data.redirect){
+                        vm.isadmin = false
+                      } else {
+                         vm.isadmin = true
+                      }
+                  })
+                }
+            },
+               Users(){
+                var vm = this
+                axios.get('api/home',{
+                headers: {
+                     Authorization: 'Bearer ' + this.$auth.getToken()
+                }
+                })
+                .then(function(response) {
+                   vm.user = response.data.user
+                }).catch(function(error){
+                  console.log(error)
+                })
+            },
         }
     }
 </script>
+
+<style>
+.avatar {
+    vertical-align: middle;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+</style>
+

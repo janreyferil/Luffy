@@ -25,7 +25,7 @@
         </nav>
       <div v-for="post in posts" v-bind:key="post.id">
             <div class="jumbotron p-2">
-                <button @click="singlePost(post.id)" class="btn btn-primary col-12 mb-2"><ic icon="eye" size="lg" class="text-light animated infinite bounceIn"></ic> <ic icon="eye" size="lg" class="text-light ml-2 animated infinite bounceIn"></ic></button>
+                <button @click="singlePost(post.id)" class="btn btn-primary col-12 mb-2"><ic icon="eye" size="lg" class="text-light"></ic> <ic icon="eye" size="lg" class="text-light ml-2"></ic></button>
                 <h3 class="text-center text-danger">{{post.title}}</h3>
                 <p class="help-block text-center text-warning">Written On {{post.created_at}} By {{post.user.first}} {{post.user.last}}</p>
             </div>
@@ -34,7 +34,7 @@
     <div v-if="!isall">
       <button @click="allPosts()" class="btn btn-light col-12 mt-2 mb-2"><ic icon="users"></ic> <b>Posts</b></button>
       <div v-if="isedit" class="jumbotron p-2">
-      <edit-post v-if="access" :post=post></edit-post>
+      <edit-post @eventnamesingle="updatesingleparent" v-if="access" :post=post></edit-post>
       <button v-if="access" @click="deletePost(post.id)" class="btn btn-info col-12 mt-2 text-light"><ic icon="trash-alt"></ic> <b>Delete</b></button>
       <button @click="willEdit(false)" class="btn btn-dark col-12 mt-2"><ic icon="backward" size="lg"></ic> <b>Back</b></button>
       </div>
@@ -55,10 +55,11 @@
         <div class="jumbotron p-2 text-danger">
         <div class="jumbotron p-2 bg-dark">
         <h2>{{post.title}}</h2>
-        <p class="help-block text-warning h6">Written On {{post.created_at}} By {{post.user.first}} {{post.user.last}}</p>
+         <p class="help-block text-warning h6">Written On {{post.created_at}} By {{post.user.first}} {{post.user.last}}</p>
+        <img :src="'storage/image/' + post.image" class="img-fluid rounded mx-auto d-block img-thumbnail mb-4" alt="Responsive image">
           <loading :active.sync="wait" :can-cancel="true"></loading>
           <h5>{{post.body}}</h5>
-           <ic @click="reactPost(post.id,true)" icon="thumbs-up" size="lg"></ic> <b>{{post.react.like}}</b>
+          <ic @click="reactPost(post.id,true)" icon="thumbs-up" size="lg"></ic> <b>{{post.react.like}}</b>
           <ic @click="reactPost(post.id,false)" icon="thumbs-down" class="text-info ml-2" size="lg"></ic> <span class="text-info"><b>{{post.react.dislike}}</b></span>
         </div>
         <h5><b>Comments</b></h5>
@@ -246,6 +247,9 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
       },
       updateparent(variable) {
         this.posts = variable
+      },
+      updatesingleparent(variable) {
+        this.post = variable
       },
       willReport(report){
         if(report)

@@ -51,3 +51,8 @@ Route::post('react/posts/{post}/comments/{comment}','ReactsController@comment_re
 
 //AccessControl
 Route::get('post/access_control/{post}','UserDashboardController@accessControl');
+Route::get('check','AdminDashboardController@adminControl');
+
+//Account Settings
+Route::put('setting/account','UserDashboardController@changeAccount');
+Route::put('setting/info','UserDashboardController@changeInfo');

@@ -13,6 +13,7 @@
 
 <script>
 import Loading from '../inc/Loading.vue'
+import swal from 'sweetalert'
      export default {
         data() {
             return {
@@ -41,13 +42,25 @@ import Loading from '../inc/Loading.vue'
                 this.isloading = true
                 axios.get('api/home',{
                 headers: {
-                     Authorization: 'Bearer ' + this.$auth.getToken()
+                        Authorization: 'Bearer ' + this.$auth.getToken()
                 }
                 })
                 .then(function(response) {
-                    vm.user = response.data.user
-                    vm.message = response.data.message
-                    vm.isloading = false
+                    console.log(response.data);
+                    if(response.data.redirect){
+                        vm.isloading = false
+                        swal('Opsss',response.data.message,{
+                            icon: "error"
+                        }).then(()=>{
+                            location.reload()
+                        })
+                        vm.$auth.destroyToken()
+                        vm.$router.push('/')
+                    } else {
+                        vm.user = response.data.user
+                        vm.message = response.data.message
+                        vm.isloading = false
+                    }
                 }).catch(function(error){
                     vm.isloading = false
                 })

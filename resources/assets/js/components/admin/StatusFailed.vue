@@ -51,8 +51,7 @@ export default {
                 .then(function(response) {
                      if(response.data.redirect){
                         swal("Unauthorized","We sended a report to admin because you trying to access the admin page!",{
-                        icon: "error",
-                        className: "bg-secondary"
+                        icon: "error"
                         })  
                         this.$router.push('/dashboard')
                     }
@@ -87,14 +86,12 @@ export default {
                     text: info.text, 
                     icon: "warning",
                     buttons: true,
-                    decission: true,
-                    className: "bg-secondary"
+                    decission: true
                 })
                 .then((isSuccess) => {
                 if (isSuccess) {
                     swal("Permission",info.message, {
-                    icon: "success",
-                    className: "bg-secondary"
+                    icon: "success"
                     })
                     var data = {
                             option: 'permission',
@@ -115,8 +112,7 @@ export default {
                         })
                 } else {
                     swal("Cancel","Your decision changed",{
-                    icon: "info",
-                    className: "bg-secondary"
+                    icon: "info"
                     })  
                 }
                 })

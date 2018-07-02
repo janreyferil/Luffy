@@ -20,6 +20,7 @@ class Post extends JsonResource
         "user" => new FUR($this->user),
         "title" => $this->title,
         "body" => $this->body,
+        "image" => $this->image,
         "react" => [
             "like" => $this->post_reacts == null ? 0 : $this->post_reacts->sum('like'),
             "dislike" =>  $this->post_reacts == null ? 0 : $this->post_reacts->sum('dislike'),
