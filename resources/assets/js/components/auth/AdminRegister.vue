@@ -9,33 +9,42 @@
                     <h2 class="font-weight-bold mt-1"><ic icon="user-astronaut" size="lg"></ic> Admin Registeration</h2>
                 </div>
                 <div class="card-body font-weight-bold">
-                    <div class="form-group" :class="{'has-error' : errors.first.length}">
+                    <div class="form-group">
                         <label for="exampleInputEmail1">First Name</label>
-                        <input type="text" v-model="user.first" class="border-dark bg-dark text-danger form-control">
-                        <p class="help-block text-info" v-for="error in errors.first" v-bind:key="error"><ic icon="exclamation-circle"></ic> {{error}}</p>
+                        <input name="first" type="text" v-model="user.first" v-validate="'required|alpha|max:30'"
+                        class="border-dark bg-dark text-danger form-control">
+                        <p v-show="errors.has('first')" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{errors.first('first')}}</p>
                 </div>
-                <div class="form-group" :class="{'has-error' : errors.last.length}">
+                <div class="form-group">
                     <label for="exampleInputEmail1">Last Name</label>
-                    <input type="text" v-model="user.last" class="border-dark bg-dark text-danger form-control">
-                    <p class="help-block text-info" v-for="error in errors.last" v-bind:key="error"><ic icon="exclamation-circle"></ic> {{error}}</p>
+                    <input name="last" type="text" v-model="user.last" v-validate="'required|alpha|max:30'"
+                    class="border-dark bg-dark text-danger form-control">
+                    <p v-show="errors.has('last')" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{errors.first('last')}}</p>
                 </div>
-                <div class="form-group" :class="{'has-error' : errors.email.length}">
+                <div class="form-group">
                     <label for="exampleInputEmail1">Email</label>
-                    <input type="email" v-model="user.email" class="border-dark bg-dark text-danger form-control">
-                        <p class="help-block text-info" v-for="error in errors.email" v-bind:key="error"><ic icon="exclamation-circle"></ic> {{error}}</p>
+                    <input name="username" type="email" v-model="user.email" 
+                     class="border-dark bg-dark text-danger form-control"
+                     v-validate="'required|max:30'">
+                    <p v-show="errors.has('username')" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{errors.first('username')}}</p>
                 </div>
-                <div class="form-group" :class="{'has-error' : errors.password.length}">
+                <div class="form-group">
                     <label or="exampleInputPassword1">Password</label>
-                    <input type="password" v-model="user.password" class="border-dark bg-dark text-danger form-control">
-                        <p class="help-block text-info" v-for="error in errors.password" v-bind:key="error"><ic icon="exclamation-circle"></ic> {{error}}</p>
+                    <input name="password" type="password" v-model="user.password"
+                    v-validate="'required|max:30'" 
+                     class="border-dark bg-dark text-danger form-control">
+                    <p v-show="errors.has('password')" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{errors.first('password')}}</p>
                 </div>
-                <div class="form-group" :class="{'has-error' : errors.password_confirmation.length}">
+                <div class="form-group">
                     <label or="exampleInputPassword1">Confirm Password</label>
-                    <input type="password" v-model="user.password_confirmation" class="border-dark bg-dark text-danger form-control">
-                    <p class="help-block text-info" v-for="error in errors.password_confirmation" v-bind:key="error"><ic icon="exclamation-circle"></ic> {{error}}</p>
+                    <input name="password_confirmatio" type="password" v-model="user.password_confirmation"
+                    v-validate="'required|max:30'"
+                    class="border-dark bg-dark text-danger form-control">
+                    <p v-show="errors.has('password_confirmatio')" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{errors.first('password_confirmatio')}}</p>
+                    
                 </div>
 
-                 <button @click="register(user)" class="btn btn-outline-danger col-12">Register</button>
+                 <button @click="validateBeforeSubmit(user)" class="btn btn-outline-danger col-12">Register</button>
             </div>
         </div>
     </div>
@@ -54,13 +63,6 @@ import swal from 'sweetalert'
                     password: null,
                     password_confirmation: null
                 },
-                errors: {
-                    first: [],
-                    last: [],
-                    email: [],
-                    password: [],
-                    password_confirmation: []
-                },
                 isloading: false,
                 message: {
                     title : "Registration"
@@ -71,30 +73,31 @@ import swal from 'sweetalert'
             'loading': Loading
         },
         methods: {
+            validateBeforeSubmit(user) {
+                let vm = this;
+                //this.$validator.errors.clear();
+
+                this.$validator.validate().then((result) => {
+                        if ( result ) {
+                            vm.register(user);
+                            return;
+                        }
+                })
+            },
             register(user){
                 var vm = this
                 this.isloading = true
                 this.$http.post('api/register/admin',user)
                 .then(function(response) {
                     console.log(response.data)
-                       if(response.data.redirect){
-                            swal("Duplicate",response.data.message,{
-                                icon: "info",
-                                className: "bg-secondary"
+                       if(response.data.success){
+                            swal("Success",response.data.message,{
+                                icon: "success"
                             })
-                            vm.$router.push('/')
-                        } 
+                        }
                       vm.isloading = false  
                 })
                 .catch(function(error) {
-                    var data = error.body.errors
-                    for(var key in vm.errors){
-                        vm.errors[key] = []
-                        var errorMessage = data[key]
-              
-                        if(errorMessage)
-                            vm.errors[key] = errorMessage
-                    }
                        vm.isloading = false
                 })
             }

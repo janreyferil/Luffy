@@ -1,20 +1,24 @@
 <template>
 <div>
-    <form @submit.prevent="updateSetting(user)">
+    <form @submit.prevent="validateBeforeSubmit(user)">
         <div class="card border-info border-danger text-danger mx-auto mt-4 mb-4" style="max-width:24rem;">
                 <div class="card-header bg-danger text-light">
                     <h2 class="font-weight-bold mt-1"><ic icon="info-circle" size="lg"></ic> Information Setting</h2>
                 </div>
                 <div class="card-body font-weight-bold">
-                <div class="form-group" :class="{'has-error' : error.first}">
+                <div class="form-group">
                     <label for="exampleInputEmail1">First Name</label>
-                    <input type="text" v-model="user.first" class="border-dark bg-dark text-danger form-control">
-                    <p v-if="error.eerror" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{error.first}}</p>
+                    <input name="first" type="text" v-model="user.first" 
+                    v-validate="'required|max:30'"
+                    class="border-dark bg-dark text-danger form-control">
+                    <p v-show="errors.has('first')" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{errors.first('first')}}</p>
                 </div>
-                <div class="form-group" :class="{'has-error' : error.last}">
+                <div class="form-group">
                     <label or="exampleInputPassword1">Last Name</label>
-                    <input type="text" v-model="user.last" class="border-dark bg-dark text-danger form-control">
-                    <p v-if="error.perror" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{error.last}}</p>
+                    <input name="last" type="text" v-model="user.last" 
+                    v-validate="'required|max:30'"
+                    class="border-dark bg-dark text-danger form-control">
+                    <p v-show="errors.has('last')" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{errors.first('last')}}</p>
                 </div>
                 <div class="form-group">
                     <label for="exampleInputPassword1">Change Profile</label>
@@ -24,11 +28,15 @@
             </div>     
         </div>
     </form>
-    <loading :active.sync="wait" :can-cancel="true"></loading>
+      <loading
+            :show="wait"
+            :label="'Loading'">
+        </loading>
     </div>
 </template>
 <script>
-import Loading from 'vue-loading-overlay';
+
+import loading from 'vue-full-loading'
 import swal from 'sweetalert'
     export default {
         data() {
@@ -38,21 +46,15 @@ import swal from 'sweetalert'
                     last: '',
                     profile: '',
                 },
-                error: {
-                    first : '',
-                    last: '',
-                    eerror : false,
-                    perror : false
-                },
                 isloading: false,
                 message: {
                     title: "Update Setting"
                 },
-                wait : false
+                wait : true
             }
         },
         components: {
-            Loading
+            loading
         },
         created(){
             this.Users();
@@ -73,25 +75,29 @@ import swal from 'sweetalert'
                 vm.user.profile = e.target.result
                 }
             },
+            validateBeforeSubmit(account) {
+                let vm = this;
+                //this.$validator.errors.clear();
+                this.$validator.validate().then((result) => {
+                        if ( result ) {
+                            vm.updateSetting(account);
+                            return;
+                        }
+                })
+            },
             updateSetting(account){
               var vm = this
-                if(!vm.validate()) {
-                    return false;
-                 }
               this.wait = true
-              this.$http.put('api/setting/info',account,{
-                  headers: {
-                      Authorization: 'Bearer ' + this.$auth.getToken()
-                  }
-              })
+              this.$http.put('api/setting/info',account)
               .then(function(response){
-                  if(response.data.success){
-                 //     console.log(response.data)
                     vm.wait = false
+                  if(response.data.success){
+                    vm.$auth.setAuthenticatedUser(response.data.user)
                     swal("Success",response.data.message,{
                         icon: "success"
                     }).then(function(){
-                        location.reload()
+                        vm.$eventHub.$emit('logged')
+                        vm.$router.push('/dashboard')
                     })
                   } else {
                     vm.wait = false
@@ -102,42 +108,13 @@ import swal from 'sweetalert'
                   }
               })
             },
-            validate(){
-                 var vm = this
-                if(vm.user.first == '' && vm.user.last == ''){
-                    vm.error.first = 'The first name field is required'
-                    vm.error.last = 'The last name field is required'  
-                    vm.error.eerror = true
-                    vm.error.perror = true
-                    return false 
-                } else if(vm.user.first != '' && vm.user.last == '') {
-                    vm.error.last = 'The last name field is required'  
-                    vm.error.eerror = false
-                    vm.error.perror = true
-                    return false;
-                } else if(vm.user.first == '' && vm.user.last != '') {
-                    vm.error.eemail = true  
-                    vm.error.perror = false
-                    vm.error.first = 'The first name field is required'
-                    return false;
-                }
-                  return true;
-            },
             Users(){
                 var vm = this
-                this.wait = true
-                axios.get('api/home',{
-                headers: {
-                     Authorization: 'Bearer ' + this.$auth.getToken()
-                }
-                })
+                this.$http.get('api/home')
                 .then(function(response) {
                     vm.user.first = response.data.user.first
                     vm.user.last = response.data.user.last
-                    vm.wait = false
-                    
                 }).catch(function(error){
-                     vm.wait = false
                 })
             }
         }

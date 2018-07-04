@@ -3,22 +3,25 @@
     <div v-if="create" class="text-danger">
     <h1>Create Post</h1>
     <div class="jumbotron p-2">
-      <form @submit.prevent="createPost(post)">
+      <form @submit.prevent="validateBeforeSubmit(post)">
           <div class="form-group">
             <label class="font-weight-bold">Image</label>
             <input type="file" class="form-control bg-primary border-primary text-danger" @change="imageChanged">
           </div>
-          <div class="form-group" :class="{'has-error' : errors.title.length}">
+          <div class="form-group">
             <label class="font-weight-bold">Title</label>
-            <input type="text" class="form-control bg-primary border-primary text-danger" v-model="post.title">
-            <p class="help-block text-info" v-for="error in errors.title" v-bind:key="error"><ic icon="exclamation-circle"></ic> {{error}}</p>
+            <input name="title" type="text" v-validate="'required|alpha'" class="border-dark bg-primary text-danger form-control" v-model="post.title">
+            <p v-show="errors.has('title')" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{errors.first('title')}}</p>
           </div>
-          <div class="form-group" :class="{'has-error' : errors.body.length}">
+          <div class="form-group">
             <label class="font-weight-bold">Body</label>
-            <textarea class="form-control bg-primary border-primary text-danger" v-model="post.body"></textarea>
-            <p class="help-block text-info" v-for="error in errors.body" v-bind:key="error"><ic icon="exclamation-circle"></ic> {{error}}</p>
+            <textarea name="body" v-validate="'required'" class="form-control bg-primary border-primary text-danger" v-model="post.body"></textarea>
+            <p v-show="errors.has('body')" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{errors.first('body')}}</p>
          </div>
-        <loading :active.sync="wait" :can-cancel="true"></loading>
+          <loading
+            :show="wait"
+            :label="'Loading'">
+        </loading>
         <button type="submit" class="btn btn-danger col-12"> <ic icon="hand-point-up" size="lg"></ic> <b>Submit</b></button>
       </form>
       <button @click="isCreate(false)" class="btn btn-dark col-12 mt-2"><ic icon="backward"></ic> <b>Back</b></button>
@@ -29,8 +32,9 @@
 </template>
 <script>
 import swal from 'sweetalert'
-import Loading from 'vue-loading-overlay';
-import 'vue-loading-overlay/dist/vue-loading.min.css';
+import loading from 'vue-full-loading'
+//import Loading from 'vue-loading-overlay';
+//import 'vue-loading-overlay/dist/vue-loading.min.css';
   export default{
     props:{
       posts:{
@@ -44,16 +48,12 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
           body: '',
           image: ''
         },
-        errors:{
-          title: [],
-          body: []
-        },
         wait: false,
         create: false,
       }
     },
     components:{
-      Loading
+      loading
     },
     methods: {
       clean(){
@@ -81,44 +81,39 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
         else
         this.create = false
       },
+       validateBeforeSubmit(post) {
+          let vm = this;
+          //this.$validator.errors.clear();
+
+          this.$validator.validate().then((result) => {
+                  if ( result ) {
+                      vm.createPost(post);
+                      return;
+                  }
+          })
+      },
       createPost(post){
         var vm = this
         this.wait = true
-        this.$http.post('api/posts',post,{
-          headers: {
-            Authorization: 'Bearer ' + this.$auth.getToken()
-          }
-        })
+        this.$http.post('api/posts',post)
         .then(function(response) {
-          console.log(response.data);
+         if(response.data.success){
           vm.allPosts()
-          vm.wait = false
           vm.clean()
           swal("New Post",response.data.message,{
             icon:"success"
           })
           this.create = false
+         }
+        vm.wait = false
         })
         .catch(function(error) {
-            console.log(error);
-            var data = error.body.errors
-            for(var key in vm.errors){
-                vm.errors[key] = []
-                var errorMessage = data[key]
-
-                if(errorMessage)
-                    vm.errors[key] = errorMessage
-            }
           vm.wait = false
         })
       }, 
       allPosts(){
         var vm = this
-        this.$http.get('api/posts',{
-          headers: {
-                 Authorization: 'Bearer ' + this.$auth.getToken()
-          }
-        })
+        this.$http.get('api/posts')
         .then(function(response){
          vm.$emit('eventname', response.data.data)
         })

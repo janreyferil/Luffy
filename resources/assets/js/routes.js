@@ -22,8 +22,8 @@ import NotFound from './components/errors/NotFound.vue'
 Vue.use(VueRouter)
 
 const router = new VueRouter({
- //   linkActiveClass: 'active',
- //   mode: 'history',
+   linkActiveClass: 'active',
+   mode: 'history',
     routes: [
         {
             path:"/",

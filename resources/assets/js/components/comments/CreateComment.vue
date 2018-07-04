@@ -3,14 +3,13 @@
       <div class="row">
           <div class="col-md-8">
               <div class="form-group">
-                  <loading :active.sync="wait" :can-cancel="true"></loading>
-                  <input type="text" class="form-control bg-primary border-primary text-danger" v-model="comment.body">
-                    <p class="help-block text-info" v-for="error in errors.body" v-bind:key="error"><ic icon="exclamation-circle"></ic> {{error}}</p>
+                  <input name="body" type="text" class="form-control bg-primary border-primary text-danger" v-validate="'required'" v-model="comment.body">
+                  <p v-show="errors.has('body')" class="help-block text-info"><ic icon="exclamation-circle"></ic> {{errors.first('body')}}</p>
               </div>
           </div>
           <div class="col-md-4">
-                <button @click="createComment(post.id,comment)" class="btn btn-dark mb-4 col-12"><ic icon="comments" size="lg"></ic> Comment</button>
-                    <nav v-if="empty" aria-label="Navigation">
+                <button @click=" validateBeforeSubmit(post.id,comment)" class="btn btn-dark mb-4 col-12"><ic icon="comments" size="lg"></ic> Comment</button>
+                    <nav v-if="!empty" aria-label="Navigation">
                     <ul class="pagination justify-content-end">
                         <li class="page-item" 
                         v-bind:class="[{disabled: !pagination.prev_page_url}]">
@@ -37,22 +36,22 @@
              <ic @click="reactComment(post.id,comment.id,false)" icon="thumbs-down" class="text-info ml-2" size="lg"></ic> <span class="text-info"><b>{{comment.react.dislike}}</b></span>
           </div>
       </div>
+         <loading
+            :show="wait"
+            :label="'Loading'">
+        </loading>
 </div>
 </template>
 
 <script>
-import Loading from 'vue-loading-overlay';
-import 'vue-loading-overlay/dist/vue-loading.min.css';
+import loading from 'vue-full-loading'
     export default {
         props: ['post'],
         data(){
             return {
                 comments:[],
                 comment: {
-                    body: null
-                },
-                errors:{
-                    body: []
+                    body: ''
                 },
                 wait: true,
                 delay: null,
@@ -72,12 +71,13 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
             },this.delay) */
         },
         components: {
-            Loading
+            loading
         },
         methods: {
             clean(){
                 this.comment.body = ''
                 this.wait = false
+                this.$validator.errors.clear();
             },
             allComments(page_url){
                 var vm = this
@@ -90,16 +90,25 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
                 .then(function(response){
                     vm.comments = response.data.data
                     this.wait = false
-                    if(vm.comments === []){
-                        vm.empty = true
-                    } else {
-                        vm.empty = false
-                    }
+                    vm.empty = false
                     vm.makePagination(response.data.meta,response.data.links);
-                })
+                    if(response.data.empty){
+                        vm.empty = true
+                    } 
+               })
                 .catch(function(error){
                 this.wait = false
                 console.log(error)
+                })
+            },
+             validateBeforeSubmit(id,comment) {
+                let vm = this;
+
+                this.$validator.validate().then((result) => {
+                        if ( result ) {
+                            vm.createComment(id,comment);
+                            return;
+                        }
                 })
             },
             makePagination(meta,links) {
@@ -114,11 +123,7 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
             createComment(id,comment){
                     var vm = this
                     this.wait = true
-                    this.$http.post('api/posts/'+id+'/comments',comment,{
-                    headers: {
-                        Authorization: 'Bearer ' + this.$auth.getToken()
-                    }
-                    })
+                    this.$http.post('api/posts/'+id+'/comments',comment)
                     .then(function(response) {
                         if(response.data.success){
                             vm.allComments()
@@ -126,14 +131,6 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
                         vm.clean()
                     })
                     .catch(function(error) {
-                        var data = error.body.errors
-                        for(var key in vm.errors){
-                            vm.errors[key] = []
-                            var errorMessage = data[key]
-
-                            if(errorMessage)
-                                vm.errors[key] = errorMessage
-                        }
                         vm.wait = false
                     })
             },
@@ -209,11 +206,8 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
             },
             updateComment(id,data){
                 var vm = this
-                this.$http.put('api/posts/'+this.post.id+'/comments/'+id,data,{
-                    headers: {
-                        Authorization: 'Bearer ' + this.$auth.getToken()
-                    }
-                }).then(function(response){
+                this.$http.put('api/posts/'+this.post.id+'/comments/'+id,data)
+                .then(function(response){
                         if(response.data.success)
                         vm.allComments()
                 }).catch(function(error){
@@ -222,11 +216,8 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
             },
             deleteComment(id){
                 var vm = this
-                this.$http.delete('api/posts/'+this.post.id+'/comments/'+id,{
-                    headers: {
-                        Authorization: 'Bearer ' + this.$auth.getToken()
-                    }
-                }).then(function(response){
+                this.$http.delete('api/posts/'+this.post.id+'/comments/'+id)
+                .then(function(response){
                     vm.allComments()
                 }).catch(function(error){
                     console.log(error.data)
@@ -246,11 +237,7 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
                 } else {
                 this.data.react = 'like'
                 }
-                this.$http.post('api/react/posts/'+post_id+'/comments/'+id,vm.data,{
-                headers: {
-                        Authorization: 'Bearer ' + this.$auth.getToken()
-                }
-                })
+                this.$http.post('api/react/posts/'+post_id+'/comments/'+id,vm.data)
                 .then(function(response){
                     vm.allComments()
                // vm.post.react = response.data.react

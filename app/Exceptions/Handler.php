@@ -54,16 +54,18 @@ class Handler extends ExceptionHandler
     public function render($request, Exception $exception)
     {
       if($exception instanceof ModelNotFoundException){
+            return redirect('/');
+
             return response()->json([
              "error" => 'ID api was not found',
             ],Response::HTTP_NOT_FOUND); 
         }
  
         if($exception instanceof NotFoundHttpException){
-      return response()->json([
-          "error" => 'Incorrect Route',
-         ],Response::HTTP_NOT_FOUND); 
-        } 
+        
+            return redirect('/');
+        
         return parent::render($request, $exception);
+         }
     }
 }

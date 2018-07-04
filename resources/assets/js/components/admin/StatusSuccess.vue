@@ -51,11 +51,7 @@ export default {
             allSuccess(){
                 var vm = this
                 this.isloading = true
-                this.$http.get('api/status/success',{
-                headers: {
-                     Authorization: 'Bearer ' + this.$auth.getToken()
-                }
-                })
+                this.$http.get('api/status/success')
                 .then(function(response) {
                    if(response.data.redirect){
                         swal("Unauthorized","We sended a report to admin because you trying to access the admin page!",{

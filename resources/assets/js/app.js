@@ -24,11 +24,10 @@ import Auth from './packages/auth/Auth.js'
 import VueResource from 'vue-resource'
 import swal from 'sweetalert'
 
-
-
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { fas } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import VeeValidate from 'vee-validate';
 
 library.add(fas)
 
@@ -36,34 +35,37 @@ Vue.use(Auth)
 Vue.use(VueRouter)
 Vue.use(VueResource)
 Vue.component('ic', FontAwesomeIcon)
+Vue.use(VeeValidate);
 
+Vue.prototype.$eventHub = new Vue()
 
 Vue.http.options.root = 'http://localhost:8000'
-Vue.http.headers.common['Accept'] = 'application/json'
-Vue.http.headers.common['Content-Type'] = 'application/json'
-Vue.http.headers.common['X-CSRF-TOKEN'] =  document.head.querySelector('meta[name="csrf-token"]').content
-
 
 Vue.http.interceptors.push(function (request, next) {
-   // request.headers.set('Authorization', Vue.auth.getToken());
+    request.headers.set('Authorization', 'Bearer ' + Vue.auth.getToken())
+    request.headers.set('Accept', 'application/json')
+    request.headers.set('Content-Type', 'application/json')
+    request.headers.set('X-CSRF-TOKEN',  document.head.querySelector('meta[name="csrf-token"]').content)
+
     next(function (response) {
-        if (response.status === 401 || response.status === 403) {
-           swal("Unauthorized","You are not logged in or do not have the rights to access this site.",{
+     //   console.log(response.status)
+        if (response.status === 401 || response.status === 403 || response.status === 400) {
+            swal(response.status + ' ' + response.statusText,response.body.message,{
                icon: "error"
            }).then(function(){
                Router.push('/login')
            })
         } else if(response.status === 422){
-            swal("Oppss","Something wrong with your registration!",{
+            swal(response.status + ' ' + response.statusText,response.body.message,{
                 icon: "info"
             })
         } 
         else if(response.status === 404){
-            swal("Page is not found","Incorrect route path.",{
+            swal(response.status + ' ' + response.statusText,response.body.message,{
                 icon: "error"
             })
         } else if(response.status === 500){
-            swal("Internal Error","Contact the admin immediately for this error",{
+            swal(response.status + ' ' + response.statusText,response.body.message,{
                 icon: "error"
             })
         }

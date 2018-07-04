@@ -24,6 +24,8 @@
         "@fortawesome/free-solid-svg-icons": "^5.1.0",
         "@fortawesome/vue-fontawesome": "^0.1.0",
         "sweetalert": "^2.1.0",
+        "vee-validate": "^2.1.0-beta.5",
+        "vue-full-loading": "^1.2.1",
         "vue-loading-overlay": "^2.1.0",
         "vue-resource": "^1.5.1",
         "vue-router": "^3.0.1"

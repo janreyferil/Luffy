@@ -1,7 +1,7 @@
 <template>
 <div>
   <nav class="navbar navbar-expand-lg navbar-dark bg-danger mb-4 p-2">
-    <div v-if="user.profile" class="form-inline">
+    <div v-if="isuser" class="form-inline">
      <img :src="'storage/profile/'+user.profile" class="avatar float-left">
      <div class="navbar-brand ml-2"> <b>{{user.first}} {{user.last}}</b></div>
     </div>
@@ -65,35 +65,29 @@
       </form>
     </div>
   </nav>
-      <loading :active.sync="isLoading" :can-cancel="true"></loading>  
 </div>
 </template>
 
 <script>
-import Loading from 'vue-loading-overlay';
-import 'vue-loading-overlay/dist/vue-loading.min.css';
 import swal from 'sweetalert'
     export default {
         data(){
           return {
-            isuser: null,
+            isuser: this.$auth.isAuthenticated(),
             isLoading : false,
             isadmin: null,
-            user : [],
+            user : this.$auth.getAuthenticatedUser(),
+            wait: false
           }
         },
-        components:{
-            Loading
-        },
         created(){
-         this.isuser = this.$auth.isAuthenticated()
-         if(this.isuser){
-            this.Users()
-         }
-         this.adminControl()
-         if(sessionStorage.getItem("logout"))
-            sessionStorage.removeItem("logout")
-        },
+            var vm = this
+            this.$eventHub.$on('logged', function(){
+            vm.isuser = this.$auth.isAuthenticated()
+            vm.user = this.$auth.getAuthenticatedUser()
+            vm.adminControl()
+            })
+         },
         methods: {
           logout(){
             var vm = this
@@ -104,15 +98,17 @@ import swal from 'sweetalert'
             buttons: true,
             dangerMode: true,
             })
-            .then((willDelete) => {
+            .then((willDelete) => 
+            {
               if (willDelete) {
                 swal("You are logged out!", {
                   icon: "success"
                 }).then(()=>{
-                  vm.isLoading = true
                   this.$auth.destroyToken()
                   sessionStorage.setItem("logout",true)
-                  window.location.reload() 
+                  vm.isuser = false
+                  vm.isadmin = false
+                  vm.$router.push('/login')
                 });
                   
               } else {
@@ -140,20 +136,7 @@ import swal from 'sweetalert'
                       }
                   })
                 }
-            },
-               Users(){
-                var vm = this
-                axios.get('api/home',{
-                headers: {
-                     Authorization: 'Bearer ' + this.$auth.getToken()
-                }
-                })
-                .then(function(response) {
-                   vm.user = response.data.user
-                }).catch(function(error){
-                  console.log(error)
-                })
-            },
+            }
         }
     }
 </script>

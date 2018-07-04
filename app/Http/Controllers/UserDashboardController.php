@@ -126,9 +126,9 @@ class UserDashboardController extends Controller
 
         if($request->profile != '') {
 
-         if(auth()->user()->profile != 'noimage.jpg')
+         if($user->profile != 'noimage.jpg')
          {
-             Storage::delete('public/profile/'.auth()->user()->profile );
+             Storage::delete('public/profile/'.$user->profile);
          } 
    
          $exploded = explode(',',$request->profile);
@@ -146,7 +146,7 @@ class UserDashboardController extends Controller
          
          file_put_contents($path,$decoded);
          } else {
-             $fileName = auth()->user()->profile;
+             $fileName = $user->profile;
          }
 
         $user->first = $request->first;
@@ -156,7 +156,8 @@ class UserDashboardController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Successfully change your information'
+            'message' => 'Successfully change your information',
+            'user' => $user,
         ],200);
     }
 }

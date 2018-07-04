@@ -44,11 +44,7 @@ import swal from 'sweetalert'
         methods : {
             allPending(){
                 var vm = this
-                this.$http.get('api/status/pending',{
-                headers: {
-                     Authorization: 'Bearer ' + this.$auth.getToken()
-                }
-                })
+                this.$http.get('api/status/pending')
                 .then(function(response) {
                     if(response.data.redirect){
                           swal("Unauthorized","We sended a report to admin because you trying to access the admin page!",{
@@ -98,13 +94,7 @@ import swal from 'sweetalert'
                             option: 'permission',
                             result: permission
                         }
-                        this.$http.put("api/status/"+id, data,
-                            {
-                                headers: {
-                                    Authorization: 'Bearer ' + this.$auth.getToken()
-                                }
-                            }
-                        )
+                        this.$http.put("api/status/"+id, data)
                         .then(function (response) {
                             vm.allPending()
                            // console.log(response.data)

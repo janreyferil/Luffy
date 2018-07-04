@@ -57,7 +57,6 @@
         <h2>{{post.title}}</h2>
          <p class="help-block text-warning h6">Written On {{post.created_at}} By {{post.user.first}} {{post.user.last}}</p>
         <img :src="'storage/image/' + post.image" class="img-fluid rounded mx-auto d-block img-thumbnail mb-4" alt="Responsive image">
-          <loading :active.sync="wait" :can-cancel="true"></loading>
           <h5>{{post.body}}</h5>
           <ic @click="reactPost(post.id,true)" icon="thumbs-up" size="lg"></ic> <b>{{post.react.like}}</b>
           <ic @click="reactPost(post.id,false)" icon="thumbs-down" class="text-info ml-2" size="lg"></ic> <span class="text-info"><b>{{post.react.dislike}}</b></span>
@@ -67,6 +66,10 @@
       </div>
     </div>
   </div>
+        <loading
+            :show="wait"
+            :label="'Loading'">
+        </loading>
 </div>
 </template>
 <script>
@@ -76,8 +79,7 @@ import EditPost from './EditPost.vue'
 import swal from 'sweetalert'
 import CreateComment from '../comments/CreateComment.vue'
 import ReportUser from '../reports/ReportUser.vue'
-import Loading from 'vue-loading-overlay';
-import 'vue-loading-overlay/dist/vue-loading.min.css';
+import loading from 'vue-full-loading'
   export default{
     data(){
       return {
@@ -104,7 +106,7 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
         'create-post': CreatePost,
         'edit-post': EditPost,
         'create-comment': CreateComment,
-        Loading
+        loading
     },
     created(){
       this.allPosts()
@@ -127,11 +129,7 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
         this.isloading = true
         this.isedit = false
         page_url = page_url || 'api/posts';
-        this.$http.get(page_url,{
-          headers: {
-                 Authorization: 'Bearer ' + this.$auth.getToken()
-          }
-        })
+        this.$http.get(page_url)
         .then(function(response){
           vm.posts = response.data.data
           vm.makePagination(response.data.meta,response.data.links);
@@ -155,11 +153,7 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
       },
       accessControl(id){
         var vm = this
-        this.$http.get('api/post/access_control/'+id,{
-          headers: {
-            Authorization: 'Bearer ' + this.$auth.getToken()
-          }
-        })
+        this.$http.get('api/post/access_control/'+id)
         .then(function(response) {
           if(!response.data.restrict)
               vm.access = true
@@ -174,11 +168,7 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
         var vm = this
         vm.accessControl(id)
         this.isloading = true
-        this.$http.get('api/posts/'+id,{
-          headers: {
-                 Authorization: 'Bearer ' + this.$auth.getToken()
-          }
-        })
+        this.$http.get('api/posts/'+id)
         .then(function(response){
           vm.post = response.data
           this.isall = false
@@ -204,11 +194,7 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
             swal("Your post is delete!", {
               icon: "success",
             });
-             this.$http.delete('api/posts/'+id,{
-              headers: {
-                    Authorization: 'Bearer ' + this.$auth.getToken()
-              }
-            })
+             this.$http.delete('api/posts/'+id)
             .then(function(response){
            //   console.log(response.data)
               this.allPosts()
@@ -232,11 +218,7 @@ import 'vue-loading-overlay/dist/vue-loading.min.css';
           this.data.react = 'like'
             islike = false
         }
-        this.$http.post('api/react/posts/'+ id,this.data,{
-          headers: {
-                 Authorization: 'Bearer ' + this.$auth.getToken()
-          }
-        })
+        this.$http.post('api/react/posts/'+ id,this.data)
         .then(function(response){
           vm.post.react = response.data.react
           vm.wait = false
